@@ -1,10 +1,14 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-int is_keyword(const char *word);
-int is_operator(char c);
-int is_identifier_start(char c);
-int is_identifier_char(char c);
-int string_length(const char *s);
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void *safe_malloc(size_t size);
+
+char *trim_whitespace(char *str);
+
+void swap_int(int *a, int *b);
 
 #endif

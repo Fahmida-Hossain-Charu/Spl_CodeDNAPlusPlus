@@ -1,12 +1,15 @@
 #ifndef ASCII_OUTPUT_H
 #define ASCII_OUTPUT_H
 
-#include "lexical_metrics.h"
-#include "structural_metrics.h"
+#include <stdio.h>
 
-void print_metric_table(LexicalMetrics *lm1, LexicalMetrics *lm2,
-                        StructuralMetrics *sm1, StructuralMetrics *sm2);
+// Prints a horizontal bar for visualization
+void print_bar(const char* label, double value, int max_length);
 
-void print_similarity_bars(float cosine, float euclid, float jaccard, float edit);
+// Prints a table comparing two files
+void print_metric_table(const char* file1, const char* file2,
+                        double metrics1[], double metrics2[], int num_metrics);
 
 #endif
+
+

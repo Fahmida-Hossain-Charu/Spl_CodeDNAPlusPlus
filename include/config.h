@@ -1,8 +1,10 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#define MAX_FILE_SIZE 100000
 
-#define MAX_FILE_SIZE 200000
-#define MAX_WORD 200
+#define MAX_TOKENS 10000
+
+#define SIMILARITY_THRESHOLD 0.75
 
 #endif

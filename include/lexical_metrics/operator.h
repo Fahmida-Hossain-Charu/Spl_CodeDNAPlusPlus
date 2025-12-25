@@ -1,9 +1,14 @@
 #ifndef OPERATOR_H
 #define OPERATOR_H
 
-#include "../tokenizer.h"
+#include "tokenizer.h"
 
-// Computes operator density: #operators / total tokens
-double compute_operator_density(const TokenList* token_list);
+typedef struct {
+    int total;
+    int counts[128];
+} OperatorMetrics;
+
+void analyze_operators(const TokenList* tokens, OperatorMetrics* metrics);
+int get_total_operators(const OperatorMetrics* metrics);
 
 #endif

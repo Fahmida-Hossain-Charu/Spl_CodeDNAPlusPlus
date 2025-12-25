@@ -3,10 +3,11 @@
 
 #include <stdio.h>
 
-// Reads a .c file into a dynamically allocated string
-char *read_c_file(const char *filename);
+typedef struct {
+    char lines[5000][512];
+    int line_count;
+} FileContent;
 
-// Counts number of lines in a C file
-int count_lines(const char *content);
+int read_file(const char* path, FileContent* fileData);
 
 #endif

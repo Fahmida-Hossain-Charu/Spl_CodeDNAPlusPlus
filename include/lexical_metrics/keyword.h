@@ -1,9 +1,14 @@
 #ifndef KEYWORD_H
 #define KEYWORD_H
 
-#include "../tokenizer.h"
+#include "tokenizer.h"
 
-// Computes keyword density: #keywords / total tokens
-double compute_keyword_density(const TokenList* token_list);
+typedef struct {
+    int total;
+    int counts[128];
+} KeywordMetrics;
+
+void analyze_keywords(const TokenList* tokens, KeywordMetrics* metrics);
+int get_total_keywords(const KeywordMetrics* metrics);
 
 #endif

@@ -1,9 +1,14 @@
 #ifndef IDENTIFIER_H
 #define IDENTIFIER_H
 
-#include "../tokenizer.h"
+#include "tokenizer.h"
 
-// Counts the number of unique identifiers in a token list
-int count_unique_identifiers(const TokenList* token_list);
+typedef struct {
+    int total;
+    char unique_tokens[5000][64];
+    int unique_count;
+} IdentifierMetrics;
+
+void analyze_identifiers(const TokenList* tokens, IdentifierMetrics* metrics);
 
 #endif

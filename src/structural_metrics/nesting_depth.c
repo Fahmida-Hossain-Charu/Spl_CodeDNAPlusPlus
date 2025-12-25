@@ -1,11 +1,17 @@
-#include "nesting_depth.h"
+#include "structural_metrics/nesting_depth.h"
+#include <string.h>
 
-int compute_nesting_depth(const char* content) {
-    int max_depth = 0, current = 0;
-    for (int i = 0; content[i]; i++) {
-        if (content[i] == '{') current++;
-        if (current > max_depth) max_depth = current;
-        if (content[i] == '}') current--;
+void analyze_nesting(const FileContent* fileData, NestingMetrics* metrics) {
+    metrics->max_depth = 0;
+    int current=0;
+
+    for (int i=0;i<fileData->line_count;i++) {
+        const char* line = fileData->lines[i];
+        int len = strlen(line);
+        for (int j=0;j<len;j++) {
+            if (line[j]=='{') current++;
+            else if (line[j]=='}') current--;
+            if (current>metrics->max_depth) metrics->max_depth=current;
+        }
     }
-    return max_depth;
 }

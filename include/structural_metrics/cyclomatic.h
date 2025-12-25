@@ -1,7 +1,12 @@
 #ifndef CYCLOMATIC_H
 #define CYCLOMATIC_H
 
-// Computes cyclomatic complexity of a function/file
-int compute_cyclomatic(const char* content);
+#include "file_reader.h"
+
+typedef struct {
+    int complexity;
+} CyclomaticMetrics;
+
+void analyze_cyclomatic(const FileContent* fileData, CyclomaticMetrics* metrics);
 
 #endif

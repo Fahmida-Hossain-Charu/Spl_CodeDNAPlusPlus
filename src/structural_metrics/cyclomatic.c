@@ -1,15 +1,16 @@
-#include "cyclomatic.h"
+#include "structural_metrics/cyclomatic.h"
 #include <string.h>
 
-int compute_cyclomatic(const char* content) {
-    int complexity = 1; // default
-    const char* keywords[] = { "if", "for", "while", "case", "&&", "||" };
-    for (int i = 0; content[i]; i++) {
-        for (int k = 0; k < sizeof(keywords)/sizeof(keywords[0]); k++) {
-            if (strncmp(&content[i], keywords[k], strlen(keywords[k])) == 0) {
-                complexity++;
-            }
+void analyze_cyclomatic(const FileContent* fileData, CyclomaticMetrics* metrics) {
+    metrics->complexity = 1;
+
+    const char* keywords[] = {"if","for","while","case","&&","||","?:"};
+    int ktotal = sizeof(keywords)/sizeof(keywords[0]);
+
+    for (int i=0;i<fileData->line_count;i++) {
+        const char* line = fileData->lines[i];
+        for (int k=0;k<ktotal;k++) {
+            if (strstr(line,keywords[k])) metrics->complexity++;
         }
     }
-    return complexity;
 }

@@ -1,7 +1,12 @@
 #ifndef NESTING_DEPTH_H
 #define NESTING_DEPTH_H
 
-// Computes max nesting depth of braces
-int compute_nesting_depth(const char* content);
+#include "file_reader.h"
+
+typedef struct {
+    int max_depth;
+} NestingMetrics;
+
+void analyze_nesting(const FileContent* fileData, NestingMetrics* metrics);
 
 #endif

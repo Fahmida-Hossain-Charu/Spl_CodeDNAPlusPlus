@@ -1,18 +1,27 @@
-#include "statement.h"
+#include "structural_metrics/statement.h"
 #include <string.h>
-#include <stdio.h>
 
-double average_statement_length(const char* content) {
-    int stmt_count = 0, line_count = 0;
-    char buffer[1024];
-    FILE* f = tmpfile();
-    fputs(content, f);
-    rewind(f);
+void analyze_statements(const FileContent* fileData, StatementMetrics* metrics) {
+    metrics->total_statements = 0;
+    int lengths[5000]={0};
+    int stmt_len=0;
+    int stmt_idx=0;
 
-    while (fgets(buffer, sizeof(buffer), f)) {
-        line_count++;
-        if (strchr(buffer, ';')) stmt_count++;
+    for (int i=0;i<fileData->line_count;i++) {
+        const char* line = fileData->lines[i];
+        int len = strlen(line);
+        for (int j=0;j<len;j++) {
+            stmt_len++;
+            if (line[j]==';') {
+                lengths[stmt_idx++] = stmt_len;
+                stmt_len=0;
+                metrics->total_statements++;
+            }
+        }
+        if (stmt_len>0 && line[len-1]!=';') stmt_len++;
     }
-    fclose(f);
-    return stmt_count ? (double)line_count / stmt_count : 0.0;
+
+    int sum=0;
+    for (int i=0;i<stmt_idx;i++) sum+=lengths[i];
+    metrics->avg_statement_length = stmt_idx>0?sum/stmt_idx:0;
 }

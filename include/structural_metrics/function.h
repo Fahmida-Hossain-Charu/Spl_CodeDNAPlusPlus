@@ -1,7 +1,13 @@
 #ifndef FUNCTION_H
 #define FUNCTION_H
 
-// Counts number of functions in a file
-int count_functions(const char* content);
+#include "file_reader.h"
+
+typedef struct {
+    int total_functions;
+    int avg_func_length;
+} FunctionMetrics;
+
+void analyze_functions(const FileContent* fileData, FunctionMetrics* metrics);
 
 #endif

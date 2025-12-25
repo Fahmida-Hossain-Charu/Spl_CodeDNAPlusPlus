@@ -1,15 +1,19 @@
 #ifndef ASCII_OUTPUT_H
 #define ASCII_OUTPUT_H
 
-#include <stdio.h>
+#include "lexical_metrics/keyword.h"
+#include "lexical_metrics/operator.h"
+#include "lexical_metrics/identifier.h"
+#include "lexical_metrics/comment.h"
+#include "structural_metrics/loc.h"
+#include "structural_metrics/function.h"
+#include "structural_metrics/cyclomatic.h"
+#include "structural_metrics/nesting_depth.h"
+#include "structural_metrics/statement.h"
+#include "similarity/hybrid.h"
 
-// Prints a horizontal bar for visualization
-void print_bar(const char* label, double value, int max_length);
-
-// Prints a table comparing two files
-void print_metric_table(const char* file1, const char* file2,
-                        double metrics1[], double metrics2[], int num_metrics);
+void print_lexical_metrics(const char* filename, const KeywordMetrics* kw, const OperatorMetrics* op, const IdentifierMetrics* id, const CommentMetrics* cm);
+void print_structural_metrics(const char* filename, const LOCMetrics* loc, const FunctionMetrics* func, const CyclomaticMetrics* cyclo, const NestingMetrics* nest, const StatementMetrics* stmt);
+void print_similarity(const char* fileA, const char* fileB, double cosine, double euclid, double jaccard, double edit, double hybrid);
 
 #endif
-
-

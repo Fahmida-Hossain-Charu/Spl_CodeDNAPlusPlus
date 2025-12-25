@@ -1,28 +1,20 @@
-#include "loc.h"
+#include "structural_metrics/loc.h"
 #include <string.h>
-#include <stdio.h>
-#include <ctype.h>
 
-int count_loc(const char* content) {
-    int loc = 0;
-    int in_comment = 0;
-    char line[1024];
-    FILE* f = tmpfile();
-    fputs(content, f);
-    rewind(f);
+void analyze_loc(const FileContent* fileData, LOCMetrics* metrics) {
+    metrics->total_lines = fileData->line_count;
+    metrics->blank_lines = 0;
+    metrics->code_lines = 0;
 
-    while (fgets(line, sizeof(line), f)) {
-        char* ptr = line;
-        while (*ptr && isspace(*ptr)) ptr++;
-        if (*ptr == '\0') continue; // skip empty
-        if (strncmp(ptr, "/*", 2) == 0) in_comment = 1;
-        if (in_comment) {
-            if (strstr(ptr, "*/")) in_comment = 0;
-            continue;
+    for (int i=0;i<fileData->line_count;i++) {
+        int empty = 1;
+        for (int j=0;fileData->lines[i][j];j++) {
+            if (fileData->lines[i][j]!=' ' && fileData->lines[i][j]!='\t') {
+                empty = 0;
+                break;
+            }
         }
-        if (strncmp(ptr, "//", 2) == 0) continue; // single line comment
-        loc++;
+        if (empty) metrics->blank_lines++;
+        else metrics->code_lines++;
     }
-    fclose(f);
-    return loc;
 }

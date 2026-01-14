@@ -68,7 +68,6 @@ void trim_newline(char* str) {
         str[len - 1] = '\0';
 }
 
-// Converting everything to lowercase because
 
 void to_lowercase(char* str) {
     if (!str) return;
@@ -77,7 +76,7 @@ void to_lowercase(char* str) {
     }
 }
 
-// copying wrapper
+
 void safe_copy(char* dest, const char* src, int max) {
     if (!dest || !src || max <= 0) return;
 
@@ -85,7 +84,7 @@ void safe_copy(char* dest, const char* src, int max) {
     dest[max - 1] = '\0';
 }
 
-// I remove extra spaces so parsing becomes cleaner
+
 void remove_extra_spaces(char* line) {
     if (!line) return;
 
@@ -109,7 +108,7 @@ void remove_extra_spaces(char* line) {
     strcpy(line, buffer);
 }
 
-// count a specific char in a line
+
 int count_char_occurrence(const char* line, char c) {
     if (!line) return 0;
 

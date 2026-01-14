@@ -1,10 +1,10 @@
 #include "similarity/hybrid.h"
+#include "similarity/cosine.h"
+#include "similarity/jaccard.h"
 
 double hybrid_similarity(const TokenList* a, const TokenList* b) {
-    double c = cosine_similarity(a,b);
-    double e = 1.0/(1.0+euclidean_distance(a,b));
-    double j = jaccard_similarity(a,b);
-    double ed = 1.0/(1.0+edit_distance(a,b));
+    double c = cosine_similarity(a, b);
+    double j = jaccard_similarity(a, b);
 
-    return (c+e+j+ed)/4.0;
+    return (c + j) / 2.0;
 }

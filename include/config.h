@@ -17,7 +17,6 @@
 #define MAX_OPERATORS 128
 #define MAX_COMMENTS 5000
 
-
 #define MAX_METRIC_VECTOR 64
 
 #define TRUE 1

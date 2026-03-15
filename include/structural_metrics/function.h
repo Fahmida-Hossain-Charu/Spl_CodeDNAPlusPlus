@@ -1,11 +1,10 @@
-#ifndef FUNCTION_H
-#define FUNCTION_H
+#ifndef FUNCTION_METRICS_H
+#define FUNCTION_METRICS_H
 
-#include "file_reader.h"
+#include "../file_reader.h"
 
 typedef struct {
-    int total_functions;
-    int avg_func_length;
+    int function_count;
 } FunctionMetrics;
 
 void analyze_functions(const FileContent* fileData, FunctionMetrics* metrics);

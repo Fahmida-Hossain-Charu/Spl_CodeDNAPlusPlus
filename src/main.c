@@ -70,7 +70,7 @@ void analyze_file(const char* filename) {
     print_structural_metrics(filename, &loc, &func, &cyclo, &nest, &stmt);
 }
 
-void compare_files(const char* file1, const char* file2) {
+void compare_two_files(const char* file1, const char* file2) {
     FileContent f1, f2;
     TokenList t1, t2;
     
@@ -87,6 +87,9 @@ void compare_files(const char* file1, const char* file2) {
         return;
     }
     
+    analyze_file(file1);
+    analyze_file(file2);
+    
     double cosine = cosine_similarity(&t1, &t2);
     double euclid = euclidean_distance(&t1, &t2);
     double jaccard = jaccard_similarity(&t1, &t2);
@@ -94,6 +97,34 @@ void compare_files(const char* file1, const char* file2) {
     double hybrid = hybrid_similarity(&t1, &t2);
     
     print_similarity(file1, file2, cosine, euclid, jaccard, edit, hybrid);
+}
+
+void compare_multiple_files(int file_count, char files[][256]) {
+    for (int i = 0; i < file_count; i++) {
+        analyze_file(files[i]);
+    }
+    
+    printf("\nPAIRWISE COMPARISONS\n");
+    printf("====================\n");
+    for (int i = 0; i < file_count; i++) {
+        for (int j = i + 1; j < file_count; j++) {
+            FileContent f1, f2;
+            TokenList t1, t2;
+            
+            read_file(files[i], &f1);
+            read_file(files[j], &f2);
+            tokenize_file(&f1, &t1);
+            tokenize_file(&f2, &t2);
+            
+            double cosine = cosine_similarity(&t1, &t2);
+            double euclid = euclidean_distance(&t1, &t2);
+            double jaccard = jaccard_similarity(&t1, &t2);
+            double edit = normalized_edit_similarity(&t1, &t2);
+            double hybrid = hybrid_similarity(&t1, &t2);
+            
+            print_similarity(files[i], files[j], cosine, euclid, jaccard, edit, hybrid);
+        }
+    }
 }
 
 int is_c_file(const char* filename) {
@@ -105,17 +136,14 @@ int is_c_file(const char* filename) {
 void process_folder(const char* folder_path) {
     DIR *d;
     struct dirent *dir;
-    char* files[100];
+    char files[100][256];
     int file_count = 0;
     
     d = opendir(folder_path);
     if (d) {
         while ((dir = readdir(d)) != NULL) {
             if (is_c_file(dir->d_name)) {
-                char full_path[512];
-                snprintf(full_path, sizeof(full_path), "%s/%s", folder_path, dir->d_name);
-                files[file_count] = malloc(strlen(full_path) + 1);
-                strcpy(files[file_count], full_path);
+                snprintf(files[file_count], 256, "%s/%s", folder_path, dir->d_name);
                 file_count++;
             }
         }
@@ -131,22 +159,7 @@ void process_folder(const char* folder_path) {
     }
     
     printf("\nFound %d .c files in folder\n", file_count);
-    
-    for (int i = 0; i < file_count; i++) {
-        analyze_file(files[i]);
-    }
-    
-    printf("\nPAIRWISE COMPARISONS FOR ALL FILES IN FOLDER\n");
-    printf("============================================\n");
-    for (int i = 0; i < file_count; i++) {
-        for (int j = i + 1; j < file_count; j++) {
-            compare_files(files[i], files[j]);
-        }
-    }
-    
-    for (int i = 0; i < file_count; i++) {
-        free(files[i]);
-    }
+    compare_multiple_files(file_count, files);
 }
 
 int main() {
@@ -156,15 +169,36 @@ int main() {
     while (1) {
         printf("\nCodeDNA++ - Code Similarity Analyzer\n");
         printf("====================================\n");
-        printf("1. Compare specific files\n");
-        printf("2. Compare all .c files in a folder\n");
-        printf("3. Exit\n");
+        printf("1. Compare two specific files\n");
+        printf("2. Compare multiple files\n");
+        printf("3. Compare all .c files in a folder\n");
+        printf("4. Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         getchar();
         
         switch(choice) {
             case 1: {
+                char file1[256], file2[256];
+                
+                printf("Enter first .c file: ");
+                fgets(file1, 256, stdin);
+                file1[strcspn(file1, "\n")] = 0;
+                
+                printf("Enter second .c file: ");
+                fgets(file2, 256, stdin);
+                file2[strcspn(file2, "\n")] = 0;
+                
+                if (!is_c_file(file1) || !is_c_file(file2)) {
+                    printf("Both files must be .c files\n");
+                    break;
+                }
+                
+                compare_two_files(file1, file2);
+                break;
+            }
+            
+            case 2: {
                 char files[10][256];
                 int file_count = 0;
                 
@@ -191,21 +225,11 @@ int main() {
                     break;
                 }
                 
-                for (int i = 0; i < file_count; i++) {
-                    analyze_file(files[i]);
-                }
-                
-                printf("\nPAIRWISE COMPARISONS\n");
-                printf("====================\n");
-                for (int i = 0; i < file_count; i++) {
-                    for (int j = i + 1; j < file_count; j++) {
-                        compare_files(files[i], files[j]);
-                    }
-                }
+                compare_multiple_files(file_count, files);
                 break;
             }
             
-            case 2: {
+            case 3: {
                 char folder_path[256];
                 printf("Enter folder path: ");
                 fgets(folder_path, 256, stdin);
@@ -214,7 +238,7 @@ int main() {
                 break;
             }
             
-            case 3:
+            case 4:
                 printf("Exiting...\n");
                 return 0;
                 

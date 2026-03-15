@@ -57,11 +57,6 @@ static void read_string_literal(const char* line, int* i, char* buffer) {
     buffer[k] = '\0';
 }
 
-static int skip_single_comment(const char* line, int i) {
-    while (line[i] && line[i] != '\n') i++;
-    return i;
-}
-
 static int skip_block_comment(const FileContent* data, int* lineIndex, int start) {
     int i = start + 2;
     while (*lineIndex < data->line_count) {

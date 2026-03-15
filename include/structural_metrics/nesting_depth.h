@@ -1,6 +1,13 @@
-#ifndef NESTING_METRICS_H
-#define NESTING_METRICS_H
+#ifndef NESTING_DEPTH_H
+#define NESTING_DEPTH_H
 
-int max_nesting_depth(const char *code);
+#include "file_reader.h"
+
+typedef struct {
+    int max_depth;
+    int avg_depth;
+} NestingMetrics;
+
+void analyze_nesting_depth(const FileContent* fileData, NestingMetrics* metrics);
 
 #endif

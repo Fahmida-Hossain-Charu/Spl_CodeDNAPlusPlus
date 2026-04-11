@@ -1,38 +1,62 @@
 #include "feature_vector.h"
-#include <string.h>
-#include <stdio.h>
 
-void build_feature_vector(const FileContent* file, const TokenList* tokens, 
-                          double* vector, int* vector_size) {
-    KeywordMetrics kw;
-    OperatorMetrics op;
-    IdentifierMetrics id;
+#include "lexical_metrics/comment.h"
+#include "lexical_metrics/identifier.h"
+#include "lexical_metrics/keyword.h"
+#include "lexical_metrics/operator.h"
+
+#include "structural_metrics/statement.h"
+#include "structural_metrics/function.h"
+#include "structural_metrics/loc.h"
+#include "structural_metrics/cyclomatic.h"
+#include "structural_metrics/nesting_depth.h"
+
+void build_feature_vector(const FileContent* file,
+                          const TokenList* tokens,
+                          FeatureVector* fv)
+{
     CommentMetrics cm;
-    LOCMetrics loc;
-    FunctionMetrics func;
-    CyclomaticMetrics cyclo;
-    NestingMetrics nest;
-    StatementMetrics stmt;
-    
-    analyze_keywords(tokens, &kw);
-    analyze_operators(tokens, &op);
-    analyze_identifiers(tokens, &id);
+    IdentifierMetrics im;
+    KeywordMetrics km;
+    OperatorMetrics om;
+
+    StatementMetrics sm;
+    FunctionMetrics fm;
+    LOCMetrics lm;
+    CyclomaticMetrics cy;
+    NestingMetrics nm;
+
     analyze_comments(file, &cm);
-    analyze_loc(file, &loc);
-    analyze_functions(file, &func);
-    analyze_cyclomatic(file, &cyclo);
-    analyze_nesting_depth(file, &nest);
-    analyze_statements(file, &stmt);
-    
-    vector[0] = kw.total / 100.0;
-    vector[1] = op.total / 100.0;
-    vector[2] = id.unique_count / 100.0;
-    vector[3] = cm.total_lines / 100.0;
-    vector[4] = loc.code_lines / 1000.0;
-    vector[5] = func.function_count / 50.0;
-    vector[6] = cyclo.complexity / 50.0;
-    vector[7] = nest.max_depth / 10.0;
-    vector[8] = stmt.avg_statement_length / 50.0;
-    
-    *vector_size = 9;
+    analyze_identifiers(tokens, &im);
+    analyze_keywords(tokens, &km);
+    analyze_operators(tokens, &om);
+
+    analyze_statements(file, &sm);
+    analyze_functions(file, &fm);
+    analyze_loc(file, &lm);
+    analyze_cyclomatic(file, &cy);
+    analyze_nesting_depth(file, &nm);
+
+    fv->v[0] = cm.total_lines;
+    fv->v[1] = im.total;
+    fv->v[2] = km.total;
+    fv->v[3] = om.total;
+    fv->v[4] = sm.total_statements;
+    fv->v[5] = fm.function_count;
+    fv->v[6] = lm.code_lines;
+    fv->v[7] = cy.complexity;
+    fv->v[8] = nm.max_depth;
+}
+
+void normalize_feature_vector(FeatureVector* fv)
+{
+    double max = fv->v[0];
+
+    for (int i = 1; i < 9; i++)
+        if (fv->v[i] > max) max = fv->v[i];
+
+    if (max == 0) max = 1;
+
+    for (int i = 0; i < 9; i++)
+        fv->v[i] /= max;
 }

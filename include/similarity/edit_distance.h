@@ -1,9 +1,8 @@
 #ifndef EDIT_DISTANCE_H
 #define EDIT_DISTANCE_H
 
-#include "tokenizer.h"
+#include "feature_vector.h"
 
-int edit_distance(const TokenList* a, const TokenList* b);
-double normalized_edit_similarity(const TokenList* a, const TokenList* b);
+double normalized_edit_similarity(const FeatureVector* a, const FeatureVector* b);
 
 #endif

@@ -1,8 +1,8 @@
 #ifndef HYBRID_H
 #define HYBRID_H
 
-#include "tokenizer.h"
+#include "feature_vector.h"
 
-double hybrid_similarity(const TokenList* a, const TokenList* b);
+double hybrid_similarity(const FeatureVector* a, const FeatureVector* b);
 
 #endif

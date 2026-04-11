@@ -10,7 +10,6 @@
 #include "structural_metrics/cyclomatic.h"
 #include "structural_metrics/nesting_depth.h"
 #include "structural_metrics/statement.h"
-#include "similarity/hybrid.h"
 
 void print_lexical_metrics(const char* filename, const KeywordMetrics* kw, const OperatorMetrics* op, const IdentifierMetrics* id, const CommentMetrics* cm);
 void print_structural_metrics(const char* filename, const LOCMetrics* loc, const FunctionMetrics* func, const CyclomaticMetrics* cyclo, const NestingMetrics* nest, const StatementMetrics* stmt);

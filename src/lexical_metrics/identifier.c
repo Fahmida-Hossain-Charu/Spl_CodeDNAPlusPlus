@@ -1,6 +1,16 @@
 #include "lexical_metrics/identifier.h"
 #include "utils.h"
 #include <string.h>
+#include <ctype.h>
+
+static int is_keyword(const char* w) {
+    const char* kw[] = {"int","char","float","double","void","return","if","else","for","while","do","break","continue","switch","case","default","struct","union","typedef","enum","const","static","sizeof"};
+    int n = sizeof(kw)/sizeof(kw[0]);
+    for (int i = 0; i < n; i++) {
+        if (strcmp(w, kw[i]) == 0) return 1;
+    }
+    return 0;
+}
 
 void analyze_identifiers(const TokenList* tokens, IdentifierMetrics* metrics) {
     metrics->total = 0;
@@ -9,9 +19,7 @@ void analyze_identifiers(const TokenList* tokens, IdentifierMetrics* metrics) {
     for (int i = 0; i < tokens->count; i++) {
         const char* token = tokens->tokens[i];
         
-        if (!is_c_keyword(token) && !is_operator_char(token[0]) && 
-            (isalpha(token[0]) || token[0] == '_')) {
-            
+        if (!is_keyword(token) && !is_operator_char(token[0]) && (isalpha(token[0]) || token[0] == '_')) {
             metrics->total++;
             
             int found = 0;
@@ -21,10 +29,8 @@ void analyze_identifiers(const TokenList* tokens, IdentifierMetrics* metrics) {
                     break;
                 }
             }
-            
             if (!found && metrics->unique_count < 5000) {
-                strncpy(metrics->unique_tokens[metrics->unique_count], token, 63);
-                metrics->unique_tokens[metrics->unique_count][63] = '\0';
+                strcpy(metrics->unique_tokens[metrics->unique_count], token);
                 metrics->unique_count++;
             }
         }

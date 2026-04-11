@@ -8,21 +8,23 @@ void analyze_comments(const FileContent* fileData, CommentMetrics* metrics) {
 
     int in_block = 0;
 
-    for (int i=0;i<fileData->line_count;i++) {
+    for (int i = 0; i < fileData->line_count; i++) {
         const char* line = fileData->lines[i];
         int len = strlen(line);
 
-        for (int j=0;j<len;j++) {
-            if (!in_block && line[j]=='/' && line[j+1]=='/') {
+        for (int j = 0; j < len; j++) {
+            if (!in_block && j + 1 < len && line[j] == '/' && line[j+1] == '/') {
                 metrics->single_line_count++;
                 break;
             }
-            if (!in_block && line[j]=='/' && line[j+1]=='*') {
+
+            if (!in_block && j + 1 < len && line[j] == '/' && line[j+1] == '*') {
                 metrics->block_count++;
-                in_block=1;
+                in_block = 1;
                 j++;
-            } else if (in_block && line[j]=='*' && line[j+1]=='/') {
-                in_block=0;
+            }
+            else if (in_block && j + 1 < len && line[j] == '*' && line[j+1] == '/') {
+                in_block = 0;
                 j++;
             }
         }

@@ -2,17 +2,6 @@
 #include "tokenizer.h"
 #include "feature_vector.h"
 
-#include "lexical_metrics/keyword.h"
-#include "lexical_metrics/operator.h"
-#include "lexical_metrics/identifier.h"
-#include "lexical_metrics/comment.h"
-
-#include "structural_metrics/loc.h"
-#include "structural_metrics/function.h"
-#include "structural_metrics/cyclomatic.h"
-#include "structural_metrics/nesting_depth.h"
-#include "structural_metrics/statement.h"
-
 #include "similarity/cosine.h"
 #include "similarity/euclidean.h"
 #include "similarity/jaccard.h"
@@ -20,232 +9,243 @@
 #include "similarity/hybrid.h"
 
 #include "ascii_output.h"
-#include "config.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <dirent.h>
 
-void analyze_file(const char* filename) {
-    FileContent file;
-    TokenList tokens;
-    
-    printf("\nAnalyzing: %s\n", filename);
-    printf("====================\n");
-    
-    if (read_file(filename, &file) != 0) {
-        printf("Error: Cannot read file %s\n", filename);
-        return;
-    }
-    
-    if (tokenize_file(&file, &tokens) != 0) {
-        printf("Error: Cannot tokenize file %s\n", filename);
-        return;
-    }
-    
-    KeywordMetrics kw;
-    OperatorMetrics op;
-    IdentifierMetrics id;
-    CommentMetrics cm;
-    
-    LOCMetrics loc;
-    FunctionMetrics func;
-    CyclomaticMetrics cyclo;
-    NestingMetrics nest;
-    StatementMetrics stmt;
-    
-    analyze_keywords(&tokens, &kw);
-    analyze_operators(&tokens, &op);
-    analyze_identifiers(&tokens, &id);
-    analyze_comments(&file, &cm);
-    
-    analyze_loc(&file, &loc);
-    analyze_functions(&file, &func);
-    analyze_cyclomatic(&file, &cyclo);
-    analyze_nesting_depth(&file, &nest);
-    analyze_statements(&file, &stmt);
-    
-    print_lexical_metrics(filename, &kw, &op, &id, &cm);
-    print_structural_metrics(filename, &loc, &func, &cyclo, &nest, &stmt);
+#define MAX_FILES 10
+
+int is_c_file(const char* name)
+{
+    int len = strlen(name);
+    return (len > 2 && name[len-2] == '.' && name[len-1] == 'c');
 }
 
-void compare_two_files(const char* file1, const char* file2) {
-    FileContent f1, f2;
-    TokenList t1, t2;
-    
-    printf("\nComparing: %s vs %s\n", file1, file2);
-    printf("====================\n");
-    
-    if (read_file(file1, &f1) != 0 || read_file(file2, &f2) != 0) {
-        printf("Error: Cannot read files\n");
+void process_pair(const char* f1, const char* f2)
+{
+    FileContent a,b;
+    TokenList t1,t2;
+    FeatureVector v1,v2;
+
+    init_filecontent(&a);
+    init_filecontent(&b);
+    init_tokenlist(&t1);
+    init_tokenlist(&t2);
+
+    if (read_file(f1,&a)!=0 || read_file(f2,&b)!=0)
+    {
+        printf("Error reading files\n");
         return;
     }
-    
-    if (tokenize_file(&f1, &t1) != 0 || tokenize_file(&f2, &t2) != 0) {
-        printf("Error: Cannot tokenize files\n");
-        return;
-    }
-    
-    analyze_file(file1);
-    analyze_file(file2);
-    
-    double cosine = cosine_similarity(&t1, &t2);
-    double euclid = euclidean_distance(&t1, &t2);
-    double jaccard = jaccard_similarity(&t1, &t2);
-    double edit = normalized_edit_similarity(&t1, &t2);
-    double hybrid = hybrid_similarity(&t1, &t2);
-    
-    print_similarity(file1, file2, cosine, euclid, jaccard, edit, hybrid);
+
+    tokenize_file(&a,&t1);
+    tokenize_file(&b,&t2);
+
+    build_feature_vector(&a,&t1,&v1);
+    build_feature_vector(&b,&t2,&v2);
+
+    normalize_feature_vector(&v1);
+    normalize_feature_vector(&v2);
+
+    double cos = cosine_similarity(&v1,&v2);
+    double eu  = euclidean_similarity(&v1,&v2);
+    double jac = jaccard_similarity(&v1,&v2);
+    double edit= normalized_edit_similarity(&v1,&v2);
+
+    double hybrid = (cos + eu + jac + edit) / 4.0;
+
+    print_similarity(f1,f2,cos,eu,jac,edit,hybrid);
+
+    free_filecontent(&a);
+    free_filecontent(&b);
 }
 
-void compare_multiple_files(int file_count, char files[][256]) {
-    for (int i = 0; i < file_count; i++) {
-        analyze_file(files[i]);
+void process_multi()
+{
+    int n;
+    char files[MAX_FILES][256];
+
+    printf("How many files (2-10): ");
+    scanf("%d",&n);
+    getchar();
+
+    if (n < 2 || n > 10)
+    {
+        printf("Invalid range\n");
+        return;
     }
-    
-    printf("\nPAIRWISE COMPARISONS\n");
-    printf("====================\n");
-    for (int i = 0; i < file_count; i++) {
-        for (int j = i + 1; j < file_count; j++) {
-            FileContent f1, f2;
-            TokenList t1, t2;
-            
-            read_file(files[i], &f1);
-            read_file(files[j], &f2);
-            tokenize_file(&f1, &t1);
-            tokenize_file(&f2, &t2);
-            
-            double cosine = cosine_similarity(&t1, &t2);
-            double euclid = euclidean_distance(&t1, &t2);
-            double jaccard = jaccard_similarity(&t1, &t2);
-            double edit = normalized_edit_similarity(&t1, &t2);
-            double hybrid = hybrid_similarity(&t1, &t2);
-            
-            print_similarity(files[i], files[j], cosine, euclid, jaccard, edit, hybrid);
+
+    FileContent fc[MAX_FILES];
+    TokenList tk[MAX_FILES];
+    FeatureVector fv[MAX_FILES];
+
+    for (int i = 0; i < n; i++)
+    {
+        printf("File %d: ", i+1);
+        fgets(files[i],256,stdin);
+        files[i][strcspn(files[i],"\n")] = 0;
+
+        init_filecontent(&fc[i]);
+        init_tokenlist(&tk[i]);
+
+        if (read_file(files[i],&fc[i]) != 0)
+        {
+            printf("Cannot read %s\n", files[i]);
+            return;
+        }
+
+        tokenize_file(&fc[i],&tk[i]);
+        build_feature_vector(&fc[i],&tk[i],&fv[i]);
+
+        normalize_feature_vector(&fv[i]);
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = i+1; j < n; j++)
+        {
+            double cos = cosine_similarity(&fv[i],&fv[j]);
+            double eu  = euclidean_similarity(&fv[i],&fv[j]);
+            double jac = jaccard_similarity(&fv[i],&fv[j]);
+            double edit= normalized_edit_similarity(&fv[i],&fv[j]);
+
+            double hybrid = (cos + eu + jac + edit) / 4.0;
+
+            print_similarity(files[i],files[j],cos,eu,jac,edit,hybrid);
         }
     }
 }
 
-int is_c_file(const char* filename) {
-    int len = strlen(filename);
-    if (len < 3) return 0;
-    return (filename[len-2] == '.' && filename[len-1] == 'c');
-}
+void process_folder()
+{
+    char path[256];
+    char files[MAX_FILES][256];
+    int count = 0;
 
-void process_folder(const char* folder_path) {
-    DIR *d;
-    struct dirent *dir;
-    char files[100][256];
-    int file_count = 0;
-    
-    d = opendir(folder_path);
-    if (d) {
-        while ((dir = readdir(d)) != NULL) {
-            if (is_c_file(dir->d_name)) {
-                snprintf(files[file_count], 256, "%s/%s", folder_path, dir->d_name);
-                file_count++;
-            }
+    printf("Folder path: ");
+    fgets(path,256,stdin);
+    path[strcspn(path,"\n")] = 0;
+
+    DIR* d = opendir(path);
+    if (!d)
+    {
+        printf("Cannot open folder\n");
+        return;
+    }
+
+    struct dirent* e;
+
+    while ((e = readdir(d)) != NULL && count < MAX_FILES)
+    {
+        if (!strcmp(e->d_name,".") || !strcmp(e->d_name,".."))
+            continue;
+
+        if (!is_c_file(e->d_name))
+            continue;
+
+        snprintf(files[count],256,"%s/%s",path,e->d_name);
+        count++;
+    }
+
+    closedir(d);
+
+    if (count < 2)
+    {
+        printf("Not enough .c files\n");
+        return;
+    }
+
+    FileContent fc[MAX_FILES];
+    TokenList tk[MAX_FILES];
+    FeatureVector fv[MAX_FILES];
+
+    for (int i = 0; i < count; i++)
+    {
+        init_filecontent(&fc[i]);
+        init_tokenlist(&tk[i]);
+
+        if (read_file(files[i],&fc[i]) != 0)
+        {
+            printf("Cannot read %s\n", files[i]);
+            return;
         }
-        closedir(d);
-    } else {
-        printf("Error: Cannot open folder %s\n", folder_path);
-        return;
+
+        tokenize_file(&fc[i],&tk[i]);
+        build_feature_vector(&fc[i],&tk[i],&fv[i]);
+        normalize_feature_vector(&fv[i]);
     }
-    
-    if (file_count == 0) {
-        printf("No .c files found in folder\n");
-        return;
+
+    for (int i = 0; i < count; i++)
+    {
+        for (int j = i+1; j < count; j++)
+        {
+            double cos = cosine_similarity(&fv[i],&fv[j]);
+            double eu  = euclidean_similarity(&fv[i],&fv[j]);
+            double jac = jaccard_similarity(&fv[i],&fv[j]);
+            double edit= normalized_edit_similarity(&fv[i],&fv[j]);
+
+            double hybrid = (cos + eu + jac + edit) / 4.0;
+
+            print_similarity(files[i],files[j],cos,eu,jac,edit,hybrid);
+        }
     }
-    
-    printf("\nFound %d .c files in folder\n", file_count);
-    compare_multiple_files(file_count, files);
 }
 
-int main() {
+int main()
+{
     int choice;
-    char input[512];
-    
-    while (1) {
-        printf("\nCodeDNA++ - Code Similarity Analyzer\n");
-        printf("====================================\n");
-        printf("1. Compare two specific files\n");
-        printf("2. Compare multiple files\n");
-        printf("3. Compare all .c files in a folder\n");
+
+    printf("CodeDNA++ Running...\n");
+
+    while (1)
+    {
+        printf("\n========== CodeDNA++ ==========\n");
+        printf("1. Compare two files\n");
+        printf("2. Compare multiple files (2-10)\n");
+        printf("3. Compare folder (.c files)\n");
         printf("4. Exit\n");
-        printf("Enter your choice: ");
-        scanf("%d", &choice);
-        getchar();
-        
-        switch(choice) {
-            case 1: {
-                char file1[256], file2[256];
-                
-                printf("Enter first .c file: ");
-                fgets(file1, 256, stdin);
-                file1[strcspn(file1, "\n")] = 0;
-                
-                printf("Enter second .c file: ");
-                fgets(file2, 256, stdin);
-                file2[strcspn(file2, "\n")] = 0;
-                
-                if (!is_c_file(file1) || !is_c_file(file2)) {
-                    printf("Both files must be .c files\n");
-                    break;
-                }
-                
-                compare_two_files(file1, file2);
-                break;
-            }
-            
-            case 2: {
-                char files[10][256];
-                int file_count = 0;
-                
-                printf("Enter .c file names (enter 'done' when finished):\n");
-                while (file_count < 10) {
-                    printf("File %d: ", file_count + 1);
-                    fgets(files[file_count], 256, stdin);
-                    files[file_count][strcspn(files[file_count], "\n")] = 0;
-                    
-                    if (strcmp(files[file_count], "done") == 0) {
-                        break;
-                    }
-                    
-                    if (!is_c_file(files[file_count])) {
-                        printf("Not a .c file. Please enter a .c file\n");
-                        continue;
-                    }
-                    
-                    file_count++;
-                }
-                
-                if (file_count < 2) {
-                    printf("Need at least 2 files to compare\n");
-                    break;
-                }
-                
-                compare_multiple_files(file_count, files);
-                break;
-            }
-            
-            case 3: {
-                char folder_path[256];
-                printf("Enter folder path: ");
-                fgets(folder_path, 256, stdin);
-                folder_path[strcspn(folder_path, "\n")] = 0;
-                process_folder(folder_path);
-                break;
-            }
-            
-            case 4:
-                printf("Exiting...\n");
-                return 0;
-                
-            default:
-                printf("Invalid choice. Try again.\n");
+        printf("Enter choice: ");
+
+        if (scanf("%d",&choice) != 1)
+        {
+            printf("Invalid input\n");
+            while(getchar()!='\n');
+            continue;
+        }
+
+        getchar(); // clear newline
+
+        if (choice == 4) break;
+
+        if (choice == 1)
+        {
+            char a[256], b[256];
+
+            printf("File 1: ");
+            fgets(a,256,stdin);
+            a[strcspn(a,"\n")] = 0;
+
+            printf("File 2: ");
+            fgets(b,256,stdin);
+            b[strcspn(b,"\n")] = 0;
+
+            process_pair(a,b);
+        }
+        else if (choice == 2)
+        {
+            process_multi();
+        }
+        else if (choice == 3)
+        {
+            process_folder();
+        }
+        else
+        {
+            printf("Invalid choice\n");
         }
     }
-    
+
     return 0;
 }

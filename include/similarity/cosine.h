@@ -1,8 +1,8 @@
 #ifndef COSINE_H
 #define COSINE_H
 
-#include "tokenizer.h"
+#include "feature_vector.h"
 
-double cosine_similarity(const TokenList* a, const TokenList* b);
+double cosine_similarity(const FeatureVector* a, const FeatureVector* b);
 
 #endif

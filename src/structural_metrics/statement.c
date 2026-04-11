@@ -1,6 +1,5 @@
 #include "structural_metrics/statement.h"
 #include <string.h>
-#include <ctype.h>
 
 void analyze_statements(const FileContent* fileData, StatementMetrics* metrics) {
     metrics->total_statements = 0;
@@ -9,7 +8,6 @@ void analyze_statements(const FileContent* fileData, StatementMetrics* metrics) 
     for (int i = 0; i < fileData->line_count; i++) {
         const char* line = fileData->lines[i];
         int len = strlen(line);
-        
         for (int j = 0; j < len; j++) {
             if (line[j] == ';' || line[j] == '{' || line[j] == '}') {
                 metrics->total_statements++;
@@ -18,7 +16,5 @@ void analyze_statements(const FileContent* fileData, StatementMetrics* metrics) 
             }
         }
     }
-    
-    metrics->avg_statement_length = metrics->total_statements > 0 ? 
-                                    (double)total_chars / metrics->total_statements : 0.0;
+    metrics->avg_statement_length = metrics->total_statements > 0 ? (double)total_chars / metrics->total_statements : 0;
 }

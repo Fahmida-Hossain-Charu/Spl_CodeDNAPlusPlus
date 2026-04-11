@@ -1,5 +1,5 @@
-#ifndef FUNCTION_METRICS_H
-#define FUNCTION_METRICS_H
+#ifndef FUNCTION_H
+#define FUNCTION_H
 
 #include "file_reader.h"
 

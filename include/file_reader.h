@@ -1,13 +1,15 @@
 #ifndef FILE_READER_H
 #define FILE_READER_H
 
-#include <stdio.h>
+#define MAX_LINES 10000
 
 typedef struct {
-    char lines[5000][512];
+    char** lines;
     int line_count;
 } FileContent;
 
-int read_file(const char* path, FileContent* fileData);
+void init_filecontent(FileContent* fc);
+int read_file(const char* path, FileContent* fc);
+void free_filecontent(FileContent* fc);
 
 #endif

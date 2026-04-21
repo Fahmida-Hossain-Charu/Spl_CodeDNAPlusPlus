@@ -48,6 +48,7 @@ void process_pair(const char* f1, const char* f2)
 
     normalize_feature_vector(&v1);
     normalize_feature_vector(&v2);
+  
 
     double cos = cosine_similarity(&v1,&v2);
     double eu  = euclidean_similarity(&v1,&v2);
@@ -215,7 +216,7 @@ int main()
             continue;
         }
 
-        getchar(); // clear newline
+        getchar(); 
 
         if (choice == 4) break;
 

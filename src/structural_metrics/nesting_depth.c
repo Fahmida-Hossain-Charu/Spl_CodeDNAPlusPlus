@@ -2,7 +2,10 @@
 #include <string.h>
 
 void analyze_nesting_depth(const FileContent* fileData, NestingMetrics* metrics) {
-    int current = 0, max = 0, total = 0, count = 0;
+    int current = 0;
+    int max = 0;
+    int total = 0;
+    int count = 0;
     
     for (int i = 0; i < fileData->line_count; i++) {
         const char* line = fileData->lines[i];
@@ -10,13 +13,16 @@ void analyze_nesting_depth(const FileContent* fileData, NestingMetrics* metrics)
             if (line[j] == '{') {
                 current++;
                 if (current > max) max = current;
-                total += current;
-                count++;
             } else if (line[j] == '}') {
-                if (current > 0) current--;
+                if (current > 0) {
+                    total += current;
+                    count++;
+                    current--;
+                }
             }
         }
     }
+    
     metrics->max_depth = max;
-    metrics->avg_depth = count > 0 ? total / count : 0;
+    metrics->avg_depth = (count > 0) ? (total / count) : 0;
 }

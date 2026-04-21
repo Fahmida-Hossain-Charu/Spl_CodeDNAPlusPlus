@@ -1,17 +1,32 @@
 #include <stdio.h>
+#include <string.h>
 
-int multiply(int a, int b) {
-    int result = 0;
-    for(int i=0; i<b; i++) {
-        result += a;
+void reverse(char* str) {
+    int len = strlen(str);
+    for (int i = 0; i < len / 2; i++) {
+        char temp = str[i];
+        str[i] = str[len - i - 1];
+        str[len - i - 1] = temp;
     }
-    return result;
+}
+
+int count_vowels(char* str) {
+    int count = 0;
+    for (int i = 0; str[i]; i++) {
+        char c = str[i];
+        if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' ||
+            c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U') {
+            count++;
+        }
+    }
+    return count;
 }
 
 int main() {
-    int x = 3;
-    int y = 4;
-    int z = multiply(x, y);
-    printf("Product: %d\n", z);
+    char text[100] = "Hello World";
+    printf("Original: %s\n", text);
+    reverse(text);
+    printf("Reversed: %s\n", text);
+    printf("Vowels: %d\n", count_vowels(text));
     return 0;
 }

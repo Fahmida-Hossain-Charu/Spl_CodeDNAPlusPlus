@@ -4,10 +4,19 @@
 #include <ctype.h>
 
 static int is_keyword(const char* w) {
-    const char* kw[] = {"int","char","float","double","void","return","if","else","for","while","do","break","continue","switch","case","default","struct","union","typedef","enum","const","static","sizeof"};
+    const char* kw[] = {"int","char","float","double","void","return","if","else","for","while","do","break","continue","switch","case","default","struct","union","typedef","enum","const","static","sizeof","main"};
     int n = sizeof(kw)/sizeof(kw[0]);
     for (int i = 0; i < n; i++) {
         if (strcmp(w, kw[i]) == 0) return 1;
+    }
+    return 0;
+}
+
+static int is_generic_name(const char* w) {
+    const char* generic[] = {"i", "j", "k", "x", "y", "z", "a", "b", "c", "n", "m", "temp", "result", "count"};
+    int n = sizeof(generic)/sizeof(generic[0]);
+    for (int i = 0; i < n; i++) {
+        if (strcmp(w, generic[i]) == 0) return 1;
     }
     return 0;
 }
@@ -19,7 +28,11 @@ void analyze_identifiers(const TokenList* tokens, IdentifierMetrics* metrics) {
     for (int i = 0; i < tokens->count; i++) {
         const char* token = tokens->tokens[i];
         
+        
         if (!is_keyword(token) && !is_operator_char(token[0]) && (isalpha(token[0]) || token[0] == '_')) {
+            
+            if (is_generic_name(token)) continue;
+            
             metrics->total++;
             
             int found = 0;
